@@ -9,7 +9,7 @@ const apiRoutes = require("./routes/apiRoutes.js")
 app.use(express.static("client/build"))
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(bodyParser.json())
-// app.use("/api", apiRoutes)
+app.use("/api", apiRoutes)
 app.get("*", function (req, res) {
   res.sendFile(path.join(__dirname, "./client/build/index.html"));
 });

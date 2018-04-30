@@ -1,11 +1,11 @@
 const express = require("express")
 const router = express.Router()
-const axios = require("axios")
 const APIurl = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
 const mongoose = require("mongoose")
 
-const db = mongoose.connect("mongodb://localhost/articles")
-const articleSchema = mongoose.Schema({
+
+
+const articleSchema = new mongoose.Schema({
   title : String,
   date : String,
   url : String
@@ -13,8 +13,14 @@ const articleSchema = mongoose.Schema({
 var Article = mongoose.model("Article", articleSchema);
 
 router.get("articles", (req, res)=>{
-  Article.find((err, articles)=>{
-    res.json(articles)
+  mongoose.connect("mongodb://localhost/articles")
+  const db = mongoose.connection
+  db.on('error', console.error.bind(console, 'connection error:'));
+  db.once("connect", ()=>{
+    Article.find({}, (err, articles)=>{
+      console.log(articles)
+      res.json(articles)
+    })
   })
 })
 router.post("articles", (req,res)=>{
