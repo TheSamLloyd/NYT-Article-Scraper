@@ -1,43 +1,38 @@
-const express = require("express")
-const router = express.Router()
-const APIurl = "https://api.nytimes.com/svc/search/v2/articlesearch.json";
-const mongoose = require("mongoose")
-
-
+const mongoose = require('mongoose')
+const dburl = process.env.dburl
 
 const articleSchema = new mongoose.Schema({
-  title : String,
-  date : String,
-  url : String
+  title: String,
+  date: String,
+  url: String
 })
-var Article = mongoose.model("Article", articleSchema);
+var Article = mongoose.model('Article', articleSchema)
+mongoose.set('debug', true)
+mongoose.connect(dburl)
+const db = mongoose.connection
+db.once('open', () => console.log('connected!'))
 
-router.get("articles", (req, res)=>{
-  mongoose.connect("mongodb://localhost/articles")
-  const db = mongoose.connection
-  db.on('error', console.error.bind(console, 'connection error:'));
-  db.once("connect", ()=>{
-    Article.find({}, (err, articles)=>{
-      console.log(articles)
+module.exports = function (app) {
+  app.get('/api/articles', function (req, res) {
+    Article.find({}, function (err, articles) {
+      if (err) res.sendStatus(500)
       res.json(articles)
     })
   })
-})
-router.post("articles", (req,res)=>{
-  let newArticle = new Article({
-    title : req.params.title,
-    date : req.param.date,
-    url : req.params.url
+
+  app.post('/api/articles', (req, res) => {
+    let newArticle = new Article({
+      title: req.body.title,
+      date: req.body.date,
+      url: req.body.url
+    })
+    newArticle.save().then(res.sendStatus(200))
   })
-  newArticle.save((err,article)=>{
-    if(err) return console.error(err)
+
+  app.delete('/api/articles/:id', (req, res) => {
+    Article.findByIdAndRemove(req.params.id, () => {
+      console.log('deleting...')
+    })
     res.sendStatus(200)
   })
-})
-
-router.delete("articles", (req,res)=>{
-  Article.remove({_id: req.params.id})
-  res.sendStatus(200)
-})
-
-module.exports = router
+}

@@ -10,8 +10,12 @@ class App extends Component {
     savedArticles : []
   }
   componentDidMount = event => {
-    this.setState({savedArticles : API.getSaved()})
-  }
+    API.getSaved(data=>{
+      this.setState({
+        savedArticles: data
+    })
+  })
+};
 
   handleInputChange = event => {
     const { name, value } = event.target;
@@ -23,16 +27,22 @@ class App extends Component {
     event.preventDefault();
     API.search(this.state.query)
       .then(res => {
-        console.log(res.data);
-        this.setState({ articles: res.data.response.docs });
+        this.setState({ articles: res.data.response.docs.slice(0,4) });
       })
       .catch(err => console.log(err));
   };
+  handleArticleChange = (key) =>{
+    API.getSaved(data => {
+      this.setState({
+        savedArticles: data
+      })
+    })
+  }
   render() {
     return (
       <div className="App">
         <div id="header" className="jumbotron">
-          New York Times Article Scraper
+          <h2>New York Times Article Scraper</h2>
         </div>
         <div className="container">
           <div>
@@ -44,17 +54,21 @@ class App extends Component {
             />
             <button
               onClick={this.handleFormSubmit}
-              type="success"
-              className="input-lg"
+              type="submit"
+              className="input-lg succuess"
             >
               Search
             </button>
           </div>
+          <hr />
+          <h3>Search Results</h3>
           <ArticleList id="search-results">
-            {this.state.articles.map(article=>(<Article title={article.headline.main} date={article.pub_date} url={article.web_url}/>))}
+            {this.state.articles.map(article=>(<Article title={article.headline.main} date={article.pub_date} url={article.web_url} saved={false} id={null} onSave={this.handleArticleChange}/>))}
           </ArticleList>
+          <hr />
+          <h3>Saved Articles</h3>
           <ArticleList id="saved-articles">
-            {this.state.savedArticles.map(article=>(<Article title={article.title} date={article.date} url={article.url}/>))}
+            {this.state.savedArticles.map(article=>(<Article title={article.title} date={article.date} url={article.url} saved={true} id={article._id} onSave={this.handleArticleChange}/>))}
           </ArticleList>
         </div>
       </div>
